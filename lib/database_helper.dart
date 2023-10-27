@@ -6,8 +6,13 @@ class DatabaseHelper {
   static const _databasename = 'TaskListDB.db';
   static const _databasecversion = 1;
   static const frequencyTable = 'frequency_table';
+  static const taskTable = 'task_table';
+
   static const columnID = '_id';
   static const columnFrequency = 'frequency';
+  static const columnTask='task';
+  static const columnPriority = 'priority';
+  static const columnStatus  = 'Status';
 
   late Database _db;
 
@@ -27,10 +32,19 @@ class DatabaseHelper {
       $columnID INTEGER PRIMARY KEY,
       $columnFrequency TEXT)
       ''');
+    await database.execute('''
+    CREATE TABLE $taskTable (
+    $columnID INTEGER PRIMARY KEY,
+    $columnTask TEXT,
+    $columnFrequency TEXT,
+    $columnPriority TEXT,
+    $columnStatus TEXT)
+    ''');
   }
 
   Future _onUpgrade(Database database, int oldVersion, int newVersion) async {
     await database.execute('DROP TABLE $frequencyTable');
+    await database.execute('DROP TABLE $taskTable');
     _onCreate(database, newVersion);
   }
 

@@ -56,7 +56,10 @@ class _FrequencyListScreenState extends State<FrequencyListScreen> {
                 elevation: 8,
                 child: ListTile(
                   leading: IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      print('------->Edit Record Id: $index');
+                      _editFrequency(context, _frequencyList[index].id);
+                    },
                     icon: Icon(
                       Icons.edit,
                       color: Colors.deepPurple,
@@ -67,7 +70,9 @@ class _FrequencyListScreenState extends State<FrequencyListScreen> {
                     children: <Widget>[
                       Text(_frequencyList[index].frequency),
                       IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          _deleteFormDialog(context, _frequencyList[index].id);
+                        },
                         icon: Icon(
                           Icons.delete,
                           color: Colors.red,
@@ -92,6 +97,7 @@ class _FrequencyListScreenState extends State<FrequencyListScreen> {
   showFormDialog(BuildContext context) {
     return showDialog(
         context: context,
+        barrierDismissible: true,
         builder: (param) {
           return AlertDialog(
             actions: [
@@ -142,6 +148,111 @@ class _FrequencyListScreenState extends State<FrequencyListScreen> {
       getAllFrequency();
     }
     frequencyController.clear();
+  }
+
+  _editFrequency(BuildContext context, frequencyId) async {
+    print(frequencyId);
+    var row =
+        await dbHelper.readDataById(DatabaseHelper.frequencyTable, frequencyId);
+
+    setState(() {
+      frequencyController.text = row[0]['frequency'] ?? 'No Data';
+    });
+    _editFormDailog(context, frequencyId);
+  }
+
+  _editFormDailog(BuildContext context, frequencyId) {
+    return showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (param) {
+          return AlertDialog(
+            actions: <Widget>[
+              ElevatedButton(
+                onPressed: () {
+                  print('------->Cancel invoked');
+                  Navigator.pop(context);
+                  frequencyController.clear();
+                },
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  print('------->update invoked');
+                  print('Frequency: ${frequencyController.text}');
+                  update(frequencyId);
+                },
+                child: const Text('Update'),
+              ),
+            ],
+            title: const Text('Frequency'),
+            content: SingleChildScrollView(
+              child: Column(
+                children: <Widget>[
+                  TextField(
+                    controller: frequencyController,
+                    decoration: InputDecoration(hintText: 'Enter Frequency'),
+                  )
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
+  void update(int frequencyId) async {
+    print('update---->Frequency: $frequencyController.text');
+    print('update---->Frequency Id:$frequencyId');
+
+    Map<String, dynamic> row = {
+      DatabaseHelper.columnFrequency: frequencyController.text,
+      DatabaseHelper.columnID: frequencyId,
+    };
+    final result =
+        await dbHelper.updateData(row, DatabaseHelper.frequencyTable);
+    debugPrint('------>Updated Row Id : $result');
+
+    if (result > 0) {
+      Navigator.pop(context);
+      _showSuccessSnackBar(context, 'updated');
+      getAllFrequency();
+    }
+    frequencyController.clear();
+  }
+
+  _deleteFormDialog(BuildContext context, frequencyId) {
+    return showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (param) {
+          return AlertDialog(
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                  onPressed: () async {
+                    print('------->Delete Invoked');
+                    final result = await dbHelper.deleteData(
+                        frequencyId, DatabaseHelper.frequencyTable);
+                    debugPrint('Deleted Row Id:$result');
+                    if (result > 0) {
+                      Navigator.pop(context);
+                      _showSuccessSnackBar(context, 'Deleted');
+                    }
+                    setState(() {
+                      _frequencyList.clear();
+                      getAllFrequency();
+                    });
+                  },
+                  child: Text('Delete'))
+            ],
+            title: Text('Are you sure you want to delete this'),
+          );
+        });
   }
 
   void _showSuccessSnackBar(BuildContext context, String message) {

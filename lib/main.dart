@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frequency_list_screen/database_helper.dart';
 import 'package:frequency_list_screen/frequency_list_screen.dart';
+import 'package:frequency_list_screen/task_list_screen.dart';
 
 final dbHelper = DatabaseHelper();
 
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: FrequencyListScreen(),
+      home: TaskListScreen(),
     );
   }
 }
